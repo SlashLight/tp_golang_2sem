@@ -19,7 +19,7 @@ func process(input io.Reader, output io.Writer, cfg *uniq.Config) {
 
 	stringAfterUniq := uniq.UniqCMD(&str, cfg)
 	outputString := strings.Join(stringAfterUniq, "\n")
-	fmt.Println('\n')
+	fmt.Println(' ')
 	output.Write([]byte(outputString))
 }
 
