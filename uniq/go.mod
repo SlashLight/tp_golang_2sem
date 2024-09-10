@@ -1,6 +1,3 @@
-module github.com/SlashLight/tp_golang_2sem
-require (
-	github.com/SlashLight/tp_golang_2sem/stringUniq v1.22.6
-)
+module uniq
 
 go 1.22.6

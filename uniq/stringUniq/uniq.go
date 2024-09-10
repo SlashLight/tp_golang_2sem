@@ -43,7 +43,7 @@ func uniq(s *[]string) []string {
 
 func count(s *[]string) []string {
 	var (
-		prev    string
+		prev    = (*s)[0]
 		ans     []string
 		counter int
 	)
@@ -53,11 +53,11 @@ func count(s *[]string) []string {
 			counter++
 			continue
 		}
-		ans = append(ans, strconv.Itoa(counter)+" "+str)
-		counter = 0
+		ans = append(ans, strconv.Itoa(counter)+" "+prev)
+		counter = 1
 		prev = str
 	}
-
+	ans = append(ans, strconv.Itoa(counter)+" "+prev)
 	return ans
 }
 
@@ -75,9 +75,10 @@ func duplicates(s *[]string) []string {
 			}
 			duplicateFlag = true
 			ans = append(ans, str)
+		} else {
+			duplicateFlag = false
+			prev = str
 		}
-		duplicateFlag = false
-		prev = str
 	}
 
 	return ans
@@ -87,7 +88,7 @@ func unique(s *[]string) []string {
 	var (
 		prev     string
 		ans      []string
-		uniqFlag bool
+		uniqFlag = true
 	)
 
 	for _, str := range *s {
@@ -97,7 +98,7 @@ func unique(s *[]string) []string {
 			uniqFlag = false
 			prev = str
 		} else {
-			ans = append(ans, str)
+			ans = append(ans, prev)
 			prev = str
 		}
 	}
