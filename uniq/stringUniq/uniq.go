@@ -12,39 +12,44 @@ type Config struct {
 	SkipFields int
 	SkipChars  int
 	Register   bool
-	InputFile  *string
-	OutputFile *string
 }
 
-func getNewString(s string, fields, chars int) string {
+func getNewString(s string, conf *Config) string {
+	fields, chars, reg := conf.SkipFields, conf.SkipChars, conf.Register
+
 	listOfFields := strings.Fields(s)
 	if len(listOfFields) <= fields {
 		return ""
 	}
 	newStringIndex := strings.Index(s, listOfFields[fields])
 	stringWithoutFields := s[newStringIndex:]
+	if reg {
+		stringWithoutFields = strings.ToLower(stringWithoutFields)
+	}
 	return stringWithoutFields[chars:]
 }
 
 func UniqCMD(s *[]string, conf *Config) []string {
 	if conf.Count {
-		return count(s, conf.SkipFields, conf.SkipChars)
+		return count(s, conf)
 	}
 	if conf.Duplicates {
-		return duplicates(s, conf.SkipFields, conf.SkipChars)
+		return duplicates(s, conf)
 	}
 	if conf.Unique {
-		return unique(s, conf.SkipFields, conf.SkipChars)
+		return unique(s, conf)
 	}
-	return uniq(s, conf.SkipFields, conf.SkipChars)
+	return uniq(s, conf)
 }
 
-func uniq(s *[]string, fields, chars int) []string {
-	var prev string
-	var ans []string
+func uniq(s *[]string, conf *Config) []string {
+	var (
+		prev string
+		ans  []string
+	)
 
 	for _, elem := range *s {
-		str := getNewString(elem, fields, chars)
+		str := getNewString(elem, conf)
 		if prev == str {
 			continue
 		}
@@ -55,16 +60,16 @@ func uniq(s *[]string, fields, chars int) []string {
 	return ans
 }
 
-func count(s *[]string, fields, chars int) []string {
+func count(s *[]string, conf *Config) []string {
 	var (
-		prev    = getNewString((*s)[0], fields, chars)
+		prev    = getNewString((*s)[0], conf)
 		prevIdx = 0
 		ans     []string
 		counter int
 	)
 
 	for idx, elem := range *s {
-		str := getNewString(elem, fields, chars)
+		str := getNewString(elem, conf)
 		if prev == str {
 			counter++
 			continue
@@ -78,7 +83,7 @@ func count(s *[]string, fields, chars int) []string {
 	return ans
 }
 
-func duplicates(s *[]string, fields, chars int) []string {
+func duplicates(s *[]string, conf *Config) []string {
 	var (
 		prev          string
 		prevIdx       int
@@ -87,7 +92,7 @@ func duplicates(s *[]string, fields, chars int) []string {
 	)
 
 	for idx, elem := range *s {
-		str := getNewString(elem, fields, chars)
+		str := getNewString(elem, conf)
 		if prev == str {
 			if duplicateFlag {
 				continue
@@ -104,7 +109,7 @@ func duplicates(s *[]string, fields, chars int) []string {
 	return ans
 }
 
-func unique(s *[]string, fields, chars int) []string {
+func unique(s *[]string, conf *Config) []string {
 	var (
 		prev     string
 		ans      []string
@@ -112,7 +117,7 @@ func unique(s *[]string, fields, chars int) []string {
 	)
 
 	for idx, elem := range *s {
-		str := getNewString(elem, fields, chars)
+		str := getNewString(elem, conf)
 		if prev == str {
 			uniqFlag = true
 		} else if uniqFlag {

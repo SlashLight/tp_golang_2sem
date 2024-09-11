@@ -3,10 +3,10 @@ package main
 import (
 	"bufio"
 	"flag"
+	uniq "github.com/SlashLight/tp_golang_2sem/stringUniq"
 	"io"
 	"os"
 	"strings"
-	uniq "uniq/stringUniq"
 )
 
 func process(input io.Reader, output io.Writer, cfg *uniq.Config) {
@@ -48,8 +48,10 @@ func main() {
 	flag.BoolVar(&uniqConfig.Unique, "u", false, "show only unique files")
 	flag.IntVar(&uniqConfig.SkipFields, "f", 0, "do not count first f fields")
 	flag.IntVar(&uniqConfig.SkipChars, "s", 0, "do not count first s chars")
+	flag.BoolVar(&uniqConfig.Register, "i", false, "register uniq files")
 
 	flag.Parse()
+
 	inAndOutArgs := flag.Args()
 	if len(inAndOutArgs) > 0 {
 		input = getInput(inAndOutArgs[0])
@@ -60,6 +62,7 @@ func main() {
 			defer output.Close()
 		}
 	}
+
 	process(input, output, &uniqConfig)
 	return
 }
