@@ -29,26 +29,26 @@ func getNewString(s string, conf *Config) string {
 	return stringWithoutFields[chars:]
 }
 
-func UniqCMD(s *[]string, conf *Config) []string {
-	if conf.Count {
+func UniqCMD(s []string, conf *Config) []string {
+	switch {
+	case conf.Count:
 		return count(s, conf)
-	}
-	if conf.Duplicates {
+	case conf.Duplicates:
 		return duplicates(s, conf)
-	}
-	if conf.Unique {
+	case conf.Unique:
 		return unique(s, conf)
+	default:
+		return uniq(s, conf)
 	}
-	return uniq(s, conf)
 }
 
-func uniq(s *[]string, conf *Config) []string {
+func uniq(s []string, conf *Config) []string {
 	var (
 		prev string
 		ans  []string
 	)
 
-	for _, elem := range *s {
+	for _, elem := range s {
 		str := getNewString(elem, conf)
 		if prev == str {
 			continue
@@ -60,30 +60,30 @@ func uniq(s *[]string, conf *Config) []string {
 	return ans
 }
 
-func count(s *[]string, conf *Config) []string {
+func count(s []string, conf *Config) []string {
 	var (
-		prev    = getNewString((*s)[0], conf)
+		prev    = getNewString(s[0], conf)
 		prevIdx = 0
 		ans     []string
 		counter int
 	)
 
-	for idx, elem := range *s {
+	for idx, elem := range s {
 		str := getNewString(elem, conf)
 		if prev == str {
 			counter++
 			continue
 		}
-		ans = append(ans, strconv.Itoa(counter)+" "+(*s)[prevIdx])
+		ans = append(ans, strconv.Itoa(counter)+" "+s[prevIdx])
 		counter = 1
 		prev = str
 		prevIdx = idx
 	}
-	ans = append(ans, strconv.Itoa(counter)+" "+(*s)[prevIdx])
+	ans = append(ans, strconv.Itoa(counter)+" "+s[prevIdx])
 	return ans
 }
 
-func duplicates(s *[]string, conf *Config) []string {
+func duplicates(s []string, conf *Config) []string {
 	var (
 		prev          string
 		prevIdx       int
@@ -91,14 +91,14 @@ func duplicates(s *[]string, conf *Config) []string {
 		duplicateFlag bool
 	)
 
-	for idx, elem := range *s {
+	for idx, elem := range s {
 		str := getNewString(elem, conf)
 		if prev == str {
 			if duplicateFlag {
 				continue
 			}
 			duplicateFlag = true
-			ans = append(ans, (*s)[prevIdx])
+			ans = append(ans, s[prevIdx])
 		} else {
 			duplicateFlag = false
 			prev = str
@@ -109,14 +109,14 @@ func duplicates(s *[]string, conf *Config) []string {
 	return ans
 }
 
-func unique(s *[]string, conf *Config) []string {
+func unique(s []string, conf *Config) []string {
 	var (
 		prev     string
 		ans      []string
 		uniqFlag = true
 	)
 
-	for idx, elem := range *s {
+	for idx, elem := range s {
 		str := getNewString(elem, conf)
 		if prev == str {
 			uniqFlag = true
@@ -124,13 +124,13 @@ func unique(s *[]string, conf *Config) []string {
 			uniqFlag = false
 			prev = str
 		} else {
-			ans = append(ans, (*s)[idx-1])
+			ans = append(ans, s[idx-1])
 			prev = str
 		}
 	}
 
 	if !uniqFlag {
-		ans = append(ans, (*s)[len(*s)-1])
+		ans = append(ans, s[len(s)-1])
 	}
 
 	return ans

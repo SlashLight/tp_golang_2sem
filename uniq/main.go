@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	uniq "github.com/SlashLight/tp_golang_2sem/stringUniq"
 	"io"
 	"os"
@@ -16,23 +17,23 @@ func process(input io.Reader, output io.Writer, cfg *uniq.Config) {
 		str = append(str, scanner.Text())
 	}
 
-	stringAfterUniq := uniq.UniqCMD(&str, cfg)
+	stringAfterUniq := uniq.UniqCMD(str, cfg)
 	outputString := strings.Join(stringAfterUniq, "\n")
 	output.Write([]byte(outputString))
 }
 
-func getInput(inputPath string) (input *os.File) {
-	input, err := os.Open(inputPath)
+func getInput(inputPath string) (input *os.File, err error) {
+	input, err = os.Open(inputPath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return
 }
 
-func getOutput(outputPath string) (output *os.File) {
-	output, err := os.Create(outputPath)
+func getOutput(outputPath string) (output *os.File, err error) {
+	output, err = os.Create(outputPath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return
 }
@@ -42,6 +43,7 @@ func main() {
 		uniqConfig uniq.Config
 		input      = os.Stdin
 		output     = os.Stdout
+		err        error
 	)
 	flag.BoolVar(&uniqConfig.Count, "c", false, "count uniq files")
 	flag.BoolVar(&uniqConfig.Duplicates, "d", false, "show only duplicates")
@@ -54,11 +56,19 @@ func main() {
 
 	inAndOutArgs := flag.Args()
 	if len(inAndOutArgs) > 0 {
-		input = getInput(inAndOutArgs[0])
+		input, err = getInput(inAndOutArgs[0])
+		if err != nil {
+			fmt.Printf("error at opening input file: %v", err)
+			return
+		}
 		defer input.Close()
 
 		if len(inAndOutArgs) > 1 {
-			output = getOutput(inAndOutArgs[1])
+			output, err = getOutput(inAndOutArgs[1])
+			if err != nil {
+				fmt.Printf("error at opening output file: %v", err)
+				return
+			}
 			defer output.Close()
 		}
 	}
