@@ -53,7 +53,7 @@ func uniq(s []string, conf *Config) []string {
 		if prev == str {
 			continue
 		}
-		ans = append(ans, elem)
+		ans = append(ans, strings.Trim(elem, " "))
 		prev = str
 	}
 
@@ -74,12 +74,12 @@ func count(s []string, conf *Config) []string {
 			counter++
 			continue
 		}
-		ans = append(ans, strconv.Itoa(counter)+" "+s[prevIdx])
+		ans = append(ans, strings.Trim(strconv.Itoa(counter)+" "+s[prevIdx], " "))
 		counter = 1
 		prev = str
 		prevIdx = idx
 	}
-	ans = append(ans, strconv.Itoa(counter)+" "+s[prevIdx])
+	ans = append(ans, strings.Trim(strconv.Itoa(counter)+" "+s[prevIdx], " "))
 	return ans
 }
 
@@ -98,7 +98,7 @@ func duplicates(s []string, conf *Config) []string {
 				continue
 			}
 			duplicateFlag = true
-			ans = append(ans, s[prevIdx])
+			ans = append(ans, strings.Trim(s[prevIdx], " "))
 		} else {
 			duplicateFlag = false
 			prev = str
@@ -124,13 +124,13 @@ func unique(s []string, conf *Config) []string {
 			uniqFlag = false
 			prev = str
 		} else {
-			ans = append(ans, s[idx-1])
+			ans = append(ans, strings.Trim(s[idx-1], " "))
 			prev = str
 		}
 	}
 
 	if !uniqFlag {
-		ans = append(ans, s[len(s)-1])
+		ans = append(ans, strings.Trim(s[len(s)-1], " "))
 	}
 
 	return ans
