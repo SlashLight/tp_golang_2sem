@@ -1,6 +1,8 @@
 package lib
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type Stack []byte
 
@@ -22,10 +24,9 @@ func (s *Stack) isEmpty() bool {
 	return len(*s) == 0
 }
 
-func CalculateExpression(s string) int {
+func CalculateExpression(s string) (float64, error) {
 	polishNotation := getReversePolishNotation(s)
-	nums := make([]int, 0, 10)
-
+	nums := make([]float64, 0, 10)
 	for _, val := range polishNotation {
 		if val == "+" || val == "-" || val == "*" || val == "/" {
 			num1 := nums[len(nums)-2]
@@ -45,20 +46,23 @@ func CalculateExpression(s string) int {
 
 			nums = append(nums, num1)
 		} else {
-			num, _ := strconv.Atoi(val)
+			num, err := strconv.ParseFloat(val, 64)
+			if err != nil {
+				return 0, err
+			}
 			nums = append(nums, num)
 		}
 	}
 
-	return nums[0]
+	return nums[0], nil
 }
 
-func isDigit(r byte) bool {
+/*func isDigit(r byte) bool {
 	if '0' <= r && r <= '9' {
 		return true
 	}
 	return false
-}
+}*/
 
 func getNumberFromString(s string, pos *int) string {
 	var number string
@@ -86,9 +90,9 @@ func getReversePolishNotation(s string) []string {
 
 	for i := 0; i < len(s); i++ {
 		ch := s[i]
-
+		_, err := strconv.Atoi(string(ch))
 		switch {
-		case isDigit(ch):
+		case err == nil:
 			polishNotation = append(polishNotation, getNumberFromString(s, &i))
 		case ch == '(':
 			st.Push(ch)
