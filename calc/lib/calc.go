@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -41,6 +42,9 @@ func CalculateExpression(s string) (float64, error) {
 			case "*":
 				num1 *= num2
 			case "/":
+				if num2 == 0 {
+					return 0, fmt.Errorf("cannot divide by zero")
+				}
 				num1 /= num2
 			}
 
@@ -67,7 +71,8 @@ func CalculateExpression(s string) (float64, error) {
 func getNumberFromString(s string, pos *int) string {
 	var number string
 	for ; *pos < len(s); *pos++ {
-		if isDigit(s[*pos]) {
+		_, err := strconv.Atoi(string(s[*pos]))
+		if err == nil {
 			number += string(s[*pos])
 		} else {
 			*pos--
