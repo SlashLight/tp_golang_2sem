@@ -7,6 +7,8 @@ import (
 
 type Stack []byte
 
+var ErrorDivisionByZero = fmt.Errorf("Division by zero")
+
 func (s *Stack) Push(v byte) {
 	*s = append(*s, v)
 }
@@ -43,7 +45,7 @@ func CalculateExpression(s string) (float64, error) {
 				num1 *= num2
 			case "/":
 				if num2 == 0 {
-					return 0, fmt.Errorf("cannot divide by zero")
+					return 0, ErrorDivisionByZero
 				}
 				num1 /= num2
 			}

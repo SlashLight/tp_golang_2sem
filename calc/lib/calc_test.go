@@ -1,10 +1,14 @@
 package lib
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 type testCalc struct {
 	expression string
 	answer     float64
+	err        error
 }
 
 func TestCalculateExpression(t *testing.T) {
@@ -33,11 +37,18 @@ func TestCalculateExpression(t *testing.T) {
 			expression: "27+(17*3)/25-13*(25+(15*3+4))",
 			answer:     -932.96,
 		},
+		{
+			expression: "19/0",
+			err:        ErrorDivisionByZero,
+		},
 	}
 
 	for _, test := range testData {
 		answer, err := CalculateExpression(test.expression)
-		if err != nil || answer != test.answer {
+		if !errors.Is(test.err, err) {
+			t.Errorf("error mismatch, expected %v, got %v", test.err, err)
+		}
+		if answer != test.answer {
 			t.Errorf("calculateExpression(%s) => %f, want %f", test.expression, answer, test.answer)
 		}
 	}
