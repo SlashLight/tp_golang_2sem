@@ -41,8 +41,11 @@ func TestCalculateExpression(t *testing.T) {
 			expression: "19/0",
 			err:        ErrorDivisionByZero,
 		},
+		{
+			expression: "-(-11-(1*20/2)-11/2*3)",
+			answer:     37.5,
+		},
 	}
-
 	for _, test := range testData {
 		answer, err := CalculateExpression(test.expression)
 		if !errors.Is(test.err, err) {

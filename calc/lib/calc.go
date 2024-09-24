@@ -30,11 +30,19 @@ func (s *Stack) isEmpty() bool {
 func CalculateExpression(s string) (float64, error) {
 	polishNotation := getReversePolishNotation(s)
 	nums := make([]float64, 0, 10)
+	var (
+		num1, num2 float64
+	)
 	for _, val := range polishNotation {
 		if val == "+" || val == "-" || val == "*" || val == "/" {
-			num1 := nums[len(nums)-2]
-			num2 := nums[len(nums)-1]
-			nums = nums[:len(nums)-2]
+			num2 = nums[len(nums)-1]
+			nums = nums[:len(nums)-1]
+			if len(nums) < 1 {
+				num1 = 0
+			} else {
+				num1 = nums[len(nums)-1]
+				nums = nums[:len(nums)-1]
+			}
 
 			switch val {
 			case "+":
@@ -62,13 +70,6 @@ func CalculateExpression(s string) (float64, error) {
 
 	return nums[0], nil
 }
-
-/*func isDigit(r byte) bool {
-	if '0' <= r && r <= '9' {
-		return true
-	}
-	return false
-}*/
 
 func getNumberFromString(s string, pos *int) string {
 	var number string
