@@ -2,7 +2,9 @@ package lib
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
+	"strings"
 )
 
 type Stack []byte
@@ -28,13 +30,21 @@ func (s *Stack) isEmpty() bool {
 }
 
 func CalculateExpression(s string) (float64, error) {
+	s = clean(s)
 	polishNotation := getReversePolishNotation(s)
 	nums := make([]float64, 0, 10)
 	var (
 		num1, num2 float64
 	)
+	if len(polishNotation) <= 2 {
+		return strconv.ParseFloat(polishNotation[0], 64)
+	}
 	for _, val := range polishNotation {
-		if val == "+" || val == "-" || val == "*" || val == "/" {
+		if val == "+" || val == "-" || val == "*" || val == "/" || val == "~" {
+			if val == "~" {
+				nums[len(nums)-1] = 0 - nums[len(nums)-1]
+				continue
+			}
 			num2 = nums[len(nums)-1]
 			nums = nums[:len(nums)-1]
 			if len(nums) < 1 {
@@ -73,6 +83,10 @@ func CalculateExpression(s string) (float64, error) {
 
 func getNumberFromString(s string, pos *int) string {
 	var number string
+	/*if s[*pos] == '-' {
+		number += string(s[*pos])
+		*pos++
+	}*/
 	for ; *pos < len(s); *pos++ {
 		_, err := strconv.Atoi(string(s[*pos]))
 		if err == nil {
@@ -86,12 +100,21 @@ func getNumberFromString(s string, pos *int) string {
 	return number
 }
 
+func clean(expression string) string {
+	addMult := regexp.MustCompile("(\\d+)(\\()")
+	cleanExpression := strings.Replace(expression, " ", "", -1)
+	cleanExpression = strings.Replace(cleanExpression, ")(", ")*(", -1)
+	cleanExpression = addMult.ReplaceAllString(cleanExpression, "${1}*$2")
+	return cleanExpression
+}
+
 func getReversePolishNotation(s string) []string {
 	priorityMap := map[byte]int{
 		'+': 1,
 		'-': 1,
 		'*': 2,
 		'/': 2,
+		'~': 3,
 	}
 	var polishNotation []string
 	st := new(Stack)
@@ -102,6 +125,12 @@ func getReversePolishNotation(s string) []string {
 		switch {
 		case err == nil:
 			polishNotation = append(polishNotation, getNumberFromString(s, &i))
+			/*if ch == '-' {
+				for !st.isEmpty() && priorityMap[st.Top()] >= priorityMap[ch] {
+					polishNotation = append(polishNotation, string(st.Pop()))
+				}
+				st.Push('+')
+			}*/
 		case ch == '(':
 			st.Push(ch)
 		case ch == ')':
@@ -110,6 +139,9 @@ func getReversePolishNotation(s string) []string {
 			}
 			st.Pop()
 		default:
+			if ch == '-' && (i == 0 || s[i-1] == '(') {
+				ch = '~'
+			}
 			for !st.isEmpty() && priorityMap[st.Top()] >= priorityMap[ch] {
 				polishNotation = append(polishNotation, string(st.Pop()))
 			}
