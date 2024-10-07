@@ -1,6 +1,8 @@
 package main
 
-import "sync"
+import (
+	"sync"
+)
 
 func RunPipeline(cmds ...cmd) {
 	wg := sync.WaitGroup{}
@@ -20,18 +22,44 @@ func RunPipeline(cmds ...cmd) {
 }
 
 func SelectUsers(in, out chan interface{}) {
-	// 	in - string
-	// 	out - User
+	users := make(map[User]int)
+	for val := range in {
+		usr := GetUser(string(val.([]byte)))
+		if _, ok := users[usr]; !ok {
+			users[usr] = 1
+			out <- usr
+		}
+	}
 }
 
 func SelectMessages(in, out chan interface{}) {
-	// 	in - User
-	// 	out - MsgID
+	users := make([]User, 0, 2)
+	for val := range in {
+		user := val.(User)
+		if len(users) == 2 {
+			res, err := GetMessages(users...)
+			if err != nil {
+				panic(err)
+			}
+			users = make([]User, 0, 2)
+			out <- res
+		} else {
+			users = append(users, user)
+		}
+	}
+	if len(users) != 0 {
+		res, err := GetMessages(users...)
+		if err != nil {
+			panic(err)
+		}
+		out <- res
+	}
 }
 
 func CheckSpam(in, out chan interface{}) {
-	// in - MsgID
-	// out - MsgData
+	for val := range in {
+		cde3w
+	}
 }
 
 func CombineResults(in, out chan interface{}) {
