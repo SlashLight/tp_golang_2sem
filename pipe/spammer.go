@@ -135,5 +135,7 @@ func CombineResults(in, out chan interface{}) {
 		uid2, _ := strconv.ParseUint(id2, 10, 64)
 		return uid1 < uid2
 	})
-	out <- res
+	for _, str := range res {
+		out <- str
+	}
 }

@@ -186,7 +186,7 @@ func TestParallelPiplines(t *testing.T) {
 	assert.Equal(t, 22, cntSecond)
 }
 
-func wTestTotal(t *testing.T) {
+func TestTotal(t *testing.T) {
 	inputData := []string{
 		"harry.dubois@mail.ru",
 		"k.kitsuragi@mail.ru",
