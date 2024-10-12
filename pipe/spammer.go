@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,9 +15,9 @@ func RunPipeline(cmds ...cmd) {
 		out := make(chan interface{})
 		wg.Add(1)
 		go func(job cmd, in chan interface{}) {
+			defer wg.Done()
+			defer close(out)
 			job(in, out)
-			wg.Done()
-			close(out)
 		}(com, in)
 		in = out
 	}
@@ -37,7 +38,11 @@ func SelectUsers(in, out chan interface{}) {
 
 func GetUserWorker(in interface{}, out chan interface{}, mu *sync.RWMutex, users map[User]int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	usr := GetUser(in.(string))
+	usrString, err := in.(string)
+	if err != true {
+		fmt.Println(err)
+	}
+	usr := GetUser(usrString)
 	mu.RLock()
 	_, ok := users[usr]
 	mu.RUnlock()
@@ -52,15 +57,15 @@ func GetUserWorker(in interface{}, out chan interface{}, mu *sync.RWMutex, users
 func SelectMessages(in, out chan interface{}) {
 	fuser := User{}
 	wg := sync.WaitGroup{}
-	/*	outId := make(chan []MsgID)*/
 	for val := range in {
-		user := val.(User)
+		user, err := val.(User)
+		if err != true {
+			fmt.Println(err)
+		}
 		if fuser.ID != 0 {
 			wg.Add(1)
 			go GetMessagesWorker([]User{fuser, user}, out, &wg)
 			fuser.ID = 0
-			/*inUsers <- users
-			out <- <-outId*/
 		} else {
 			fuser = user
 		}
@@ -68,7 +73,7 @@ func SelectMessages(in, out chan interface{}) {
 	if fuser.ID != 0 {
 		res, err := GetMessages(fuser)
 		if err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 		for _, id := range res {
 			out <- id
@@ -81,7 +86,7 @@ func GetMessagesWorker(in []User, out chan interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 	res, err := GetMessages(in...)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 	for _, id := range res {
 		out <- id
@@ -93,7 +98,10 @@ func CheckSpam(in, out chan interface{}) {
 	counterChan := make(chan interface{}, 5)
 	for val := range in {
 		wg.Add(1)
-		msg := val.(MsgID)
+		msg, err := val.(MsgID)
+		if err != true {
+			fmt.Println(err)
+		}
 		counterChan <- struct{}{}
 		go CheckSpamWorker(msg, out, counterChan, &wg)
 	}
@@ -115,27 +123,32 @@ func CheckSpamWorker(msg MsgID, out chan interface{}, counter chan interface{}, 
 }
 
 func CombineResults(in, out chan interface{}) {
-	res := make([]string, 0, 10)
-	strData := ""
+	outData := make([]MsgData, 0, 100)
 	for val := range in {
-		data := val.(MsgData)
-		strData = strconv.FormatBool(data.HasSpam) + " " + strconv.FormatUint(uint64(data.ID), 10)
-		res = append(res, strData)
+		data, err := val.(MsgData)
+		if err != true {
+			fmt.Println(err)
+		}
+		outData = append(outData, data)
 	}
-	sort.Slice(res, func(i, j int) bool {
-		word1, word2 := res[i], res[j]
-		if word1[0] == 't' && word2[0] != 't' {
+	sort.Slice(outData, func(i, j int) bool {
+		msg1, msg2 := outData[i], outData[j]
+		if msg1.HasSpam && !msg2.HasSpam {
 			return true
 		}
-		if word2[0] == 't' && word1[0] != 't' {
+		if msg2.HasSpam && !msg1.HasSpam {
 			return false
 		}
-		id1, id2 := strings.Fields(word1)[1], strings.Fields(word2)[1]
-		uid1, _ := strconv.ParseUint(id1, 10, 64)
-		uid2, _ := strconv.ParseUint(id2, 10, 64)
-		return uid1 < uid2
+		return msg1.ID < msg2.ID
 	})
-	for _, str := range res {
-		out <- str
+	for _, str := range outData {
+		spamString := strconv.FormatBool(str.HasSpam)
+		uidString := strconv.FormatUint(uint64(str.ID), 10)
+		var builder strings.Builder
+		builder.Grow(len(spamString) + 1 + len(uidString))
+		builder.WriteString(spamString)
+		builder.WriteString(" ")
+		builder.WriteString(uidString)
+		out <- builder.String()
 	}
 }
