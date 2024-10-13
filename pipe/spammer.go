@@ -71,13 +71,8 @@ func SelectMessages(in, out chan interface{}) {
 		}
 	}
 	if fuser.ID != 0 {
-		res, err := GetMessages(fuser)
-		if err != nil {
-			fmt.Println(err)
-		}
-		for _, id := range res {
-			out <- id
-		}
+		wg.Add(1)
+		go GetMessagesWorker([]User{fuser}, out, &wg)
 	}
 	wg.Wait()
 }
