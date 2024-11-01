@@ -22,12 +22,11 @@ func RunPipeline(cmds ...cmd) {
 		in = out
 	}
 	wg.Wait()
-	return
 }
 
 func SelectUsers(in, out chan interface{}) {
 	wg := sync.WaitGroup{}
-	users := make(map[User]int)
+	users := make(map[User]interface{})
 	mu := &sync.RWMutex{}
 	for val := range in {
 		wg.Add(1)
@@ -36,19 +35,19 @@ func SelectUsers(in, out chan interface{}) {
 	wg.Wait()
 }
 
-func GetUserWorker(in interface{}, out chan interface{}, mu *sync.RWMutex, users map[User]int, wg *sync.WaitGroup) {
+func GetUserWorker(in interface{}, out chan interface{}, mu *sync.RWMutex, users map[User]interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
-	usrString, err := in.(string)
-	if err != true {
-		fmt.Println(err)
+	usrString, ok := in.(string)
+	if !ok {
+		fmt.Println(ok)
 	}
 	usr := GetUser(usrString)
 	mu.RLock()
-	_, ok := users[usr]
+	_, found := users[usr]
 	mu.RUnlock()
-	if !ok {
+	if !found {
 		mu.Lock()
-		users[usr] = 1
+		users[usr] = struct{}{}
 		mu.Unlock()
 		out <- usr
 	}
@@ -58,9 +57,9 @@ func SelectMessages(in, out chan interface{}) {
 	fuser := User{}
 	wg := sync.WaitGroup{}
 	for val := range in {
-		user, err := val.(User)
-		if err != true {
-			fmt.Println(err)
+		user, ok := val.(User)
+		if !ok {
+			fmt.Println(ok)
 		}
 		if fuser.ID != 0 {
 			wg.Add(1)
@@ -128,11 +127,8 @@ func CombineResults(in, out chan interface{}) {
 	}
 	sort.Slice(outData, func(i, j int) bool {
 		msg1, msg2 := outData[i], outData[j]
-		if msg1.HasSpam && !msg2.HasSpam {
-			return true
-		}
-		if msg2.HasSpam && !msg1.HasSpam {
-			return false
+		if (msg1.HasSpam && msg2.HasSpam) || (!msg1.HasSpam && !msg2.HasSpam) {
+			return msg1.HasSpam
 		}
 		return msg1.ID < msg2.ID
 	})
