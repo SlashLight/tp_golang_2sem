@@ -26,7 +26,7 @@ func RunPipeline(cmds ...cmd) {
 
 func SelectUsers(in, out chan interface{}) {
 	wg := sync.WaitGroup{}
-	users := make(map[User]interface{})
+	users := make(map[User]struct{})
 	mu := &sync.RWMutex{}
 	for val := range in {
 		wg.Add(1)
@@ -35,7 +35,7 @@ func SelectUsers(in, out chan interface{}) {
 	wg.Wait()
 }
 
-func GetUserWorker(in interface{}, out chan interface{}, mu *sync.RWMutex, users map[User]interface{}, wg *sync.WaitGroup) {
+func GetUserWorker(in interface{}, out chan interface{}, mu *sync.RWMutex, users map[User]struct{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 	usrString, ok := in.(string)
 	if !ok {
